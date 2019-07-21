@@ -35,6 +35,11 @@ static int[] maxStacks = new int[69]; //max stacks per tile
 static Polygon[] polygons = new Polygon[70];
 static int hoveredPoly = -1;
 static int turnPlayer = 0;
+static int reds = 0;
+static int blues = 0;
+static boolean redWin = false;
+static boolean blueWin = false;
+static boolean draw = false;
 
 	public HexWar(){
 		//create a window
@@ -239,6 +244,21 @@ static int turnPlayer = 0;
 						}
 				} //for			
 				
+					if(redWin) {
+						g2.setColor(Color.GREEN);
+						g2.setFont(new Font("TimesRoman", Font.BOLD, 60));
+						g2.drawString("Red Wins!", x / 3, y / 3);
+					}
+					if (blueWin){
+						g2.setColor(Color.GREEN);
+						g2.setFont(new Font("TimesRoman", Font.BOLD, 60));
+						g2.drawString("Blue Wins!", x / 3, y / 3);
+					}
+					if(draw) {
+						g2.setColor(Color.GREEN);
+						g2.setFont(new Font("TimesRoman", Font.BOLD, 60));
+						g2.drawString("It's a draw!", x / 3, y / 3);
+					}
 			}
 		};
 		
@@ -289,7 +309,7 @@ static int turnPlayer = 0;
 	public void mouseEntered(MouseEvent e) {
 		//do nothing
 	}
-	public void changeTurnPlayer() {
+	public void changeTurnPlayer() { // performs end of turn and gives the turn to the other player
 		if(turnPlayer == 0) {
 			turnPlayer = 1;
 		}else {
@@ -364,16 +384,20 @@ static int turnPlayer = 0;
 					if(red > blue) {
 						if(stacks2[counter] > 0) {
 							infectionBlue[counter]--;
+							blues--;
 							availableStacks1++;
 						}else if (stacks1[counter] != maxStacks[counter]){
 							infectionRed[counter]++;
+							reds++;
 						}
 					}else if (blue > red){
 						if(stacks1[counter] > 0) {
 							infectionRed[counter]--;
 							availableStacks2++;
+							reds--;
 						}else if (stacks2[counter] != maxStacks[counter]){
 							infectionBlue[counter]++;
+							blues++;
 						}
 					}
 					counter++;
@@ -441,15 +465,19 @@ static int turnPlayer = 0;
 							if(stacks2[counter] > 0) {
 								infectionBlue[counter]--;
 								availableStacks1++;
+								blues--;
 							}else if (stacks1[counter] != maxStacks[counter]){
 								infectionRed[counter]++;
+								reds++;
 							}
 						}else if (blue > red){
 							if(stacks1[counter] > 0) {
 								infectionRed[counter]--;
 								availableStacks2++;
+								reds--;
 							}else if (stacks2[counter] != maxStacks[counter]){
 								infectionBlue[counter]++;
+								blues++;
 							}
 						}
 						counter++;
@@ -523,15 +551,19 @@ static int turnPlayer = 0;
 						if(stacks2[counter] > 0) {
 							infectionBlue[counter]--;
 							availableStacks1++;
+							blues--;
 						}else if (stacks1[counter] != maxStacks[counter]){
 							infectionRed[counter]++;
+							reds++;
 						}
 					}else if (blue > red){
 						if(stacks1[counter] > 0) {
 							infectionRed[counter]--;
 							availableStacks2++;
+							reds--;
 						}else if (stacks2[counter] != maxStacks[counter]){
 							infectionBlue[counter]++;
+							blues++;
 						}
 					}
 					
@@ -544,6 +576,40 @@ static int turnPlayer = 0;
 			stacks1[t] += infectionRed[t];
 			stacks2[t] += infectionBlue[t];
 		}
+		endGame();
+		repaint();
+	}
+	public void endGame() { //checks if the game is over
+		if(reds == 0 && availableStacks1 == 0) {
+			blueWin = true;
+		}
+		if(blues == 0 && availableStacks2 == 0) {
+			redWin = true;
+		}
+		int redC = 0;
+		int blueC = 0;
+		boolean s = true;
+		for(int i = 0; i < 69; i++) {
+			if (stacks1[i] != maxStacks[i] && stacks2[i] != maxStacks[i]) {
+				s = false;
+				break;
+			}
+			if (stacks1[i] > 0) {
+				redC++;
+			}else {
+				blueC++;
+			}
+		}
+		if (s) {
+			if (blueC > redC) {
+				blueWin = true;
+			}else if (redC > blueC) {
+				redWin = true;
+			}else {
+				draw = true;
+			}
+		}
+		
 		
 	}
 	public void infect() {
@@ -551,12 +617,14 @@ static int turnPlayer = 0;
 			if(stacks2[hoveredPoly] == 0 && stacks1[hoveredPoly] < maxStacks[hoveredPoly] && availableStacks1 > 0) {
 				stacks1[hoveredPoly]++;
 				availableStacks1--;
+				reds++;
 				changeTurnPlayer();
 			}
 		}else {
 			if(stacks1[hoveredPoly] == 0 && stacks2[hoveredPoly] < maxStacks[hoveredPoly] && availableStacks2 > 0) {
 				stacks2[hoveredPoly]++;
 				availableStacks2--;
+				blues++;
 				changeTurnPlayer();
 			}
 			
@@ -572,4 +640,3 @@ static int turnPlayer = 0;
 	}
 }
 	
-
