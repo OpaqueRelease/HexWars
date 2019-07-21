@@ -305,6 +305,14 @@ static int turnPlayer = 0;
 				for (int j = 0; j < i + 4; j++) { // neighbors are -1, +1, -(i+3), -(i+4), +i+4 and +i+5
 					int blue = 0;
 					int red = 0;
+					//count this tile
+					if (stacks1[counter] == maxStacks[counter]) {
+						red+=stacks1[counter];
+					}
+					if (stacks2[counter] == maxStacks[counter]) {
+						blue+=stacks2[counter];
+					}
+					//count neighbor tiles
 					if (j != 0) { //left neighbor and upper left
 						if (maxStacks[counter - 1] == stacks2[counter - 1]) {
 							blue+=stacks2[counter - 1];
@@ -374,6 +382,14 @@ static int turnPlayer = 0;
 					for (int j = 0; j<9; j++) {
 						int blue = 0;
 						int red = 0;
+						//count this tile
+						if (stacks1[counter] == maxStacks[counter]) {
+							red+=stacks1[counter];
+						}
+						if (stacks2[counter] == maxStacks[counter]) {
+							blue+=stacks2[counter];
+						}
+						//count neighbor tiles
 						if (j != 0) { //left neighbor and upper left
 							if (maxStacks[counter - 1] == stacks2[counter - 1]) {
 								blue+=stacks2[counter - 1];
@@ -445,6 +461,14 @@ static int turnPlayer = 0;
 					
 					int blue = 0;
 					int red = 0;
+					//count this tile
+					if (stacks1[counter] == maxStacks[counter]) {
+						red+=stacks1[counter];
+					}
+					if (stacks2[counter] == maxStacks[counter]) {
+						blue+=stacks2[counter];
+					}
+					//count neighbor tiles
 					if (j != 0) { //left neighbor and bottom left
 						if (maxStacks[counter - 1] == stacks2[counter - 1]) {
 							blue+=stacks2[counter - 1];
