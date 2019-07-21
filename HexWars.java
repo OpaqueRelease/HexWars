@@ -29,8 +29,10 @@ static int yWindow = 800;
 static int nFields = 4;
 static int[] stacks1 = new int[69]; //Player 1 stacks per tile
 static int[] stacks2 = new int[69]; //Player 2 stacks per tile
-static int availableStacks1 = 10; //Player 1 stacks available
-static int availableStacks2 = 10; //Player 2 stacks available
+static int[] oldStacks1 = new int[69];
+static int[] oldStacks2 = new int[69];
+static int availableStacks1 = 5; //Player 1 stacks available
+static int availableStacks2 = 7; //Player 2 stacks available
 static int[] maxStacks = new int[69]; //max stacks per tile
 static Polygon[] polygons = new Polygon[70];
 static int hoveredPoly = -1;
@@ -315,7 +317,6 @@ static boolean draw = false;
 		}else {
 			turnPlayer = 0;
 		}
-		
 		//end of turn infections
 		int[] infectionBlue = new int[69];
 		int[] infectionRed = new int[69];
@@ -572,10 +573,13 @@ static boolean draw = false;
 			}
 		} //for		
 		//update stacks
+		oldStacks1 = stacks1;
+		oldStacks2 = stacks2;
 		for(int t = 0; t<69; t++) {
 			stacks1[t] += infectionRed[t];
 			stacks2[t] += infectionBlue[t];
 		}
+		 
 		endGame();
 		repaint();
 	}
@@ -586,31 +590,39 @@ static boolean draw = false;
 		if(blues == 0 && availableStacks2 == 0) {
 			redWin = true;
 		}
-		int redC = 0;
-		int blueC = 0;
-		boolean s = true;
-		for(int i = 0; i < 69; i++) {
-			if (stacks1[i] != maxStacks[i] && stacks2[i] != maxStacks[i]) {
-				s = false;
-				break;
-			}
-			if (stacks1[i] > 0) {
-				redC++;
-			}else {
-				blueC++;
-			}
-		}
-		if (s) {
-			if (blueC > redC) {
-				blueWin = true;
-			}else if (redC > blueC) {
-				redWin = true;
-			}else {
-				draw = true;
-			}
-		}
 		
-		
+			boolean c = true;
+			for(int l = 0; l < 69; l++) { //nothing is changing on the board
+				if (stacks1[l] != oldStacks1[l] || stacks2[l] != oldStacks2[l]) {
+					c = false;
+					break;
+				}
+			}
+			if(c) {
+				boolean s = true;
+				int redC = 0;
+				int blueC = 0;	
+				for(int i = 0; i < 69; i++) { // all tiles are full
+					if (stacks1[i] != maxStacks[i] && stacks2[i] != maxStacks[i]) {
+						s = false;
+						break;
+					}
+					if (stacks1[i] > 0) {
+						redC++;
+					}else {
+						blueC++;
+					}
+				}
+				if(s || availableStacks1 == 0 && availableStacks2 == 0) {
+					if (blueC > redC) {
+						blueWin = true;
+					}else if (redC > blueC) {
+						redWin = true;
+					}else {
+						draw = true;
+					}
+				}
+			}	
 	}
 	public void infect() {
 		if (turnPlayer == 0) {
@@ -618,6 +630,7 @@ static boolean draw = false;
 				stacks1[hoveredPoly]++;
 				availableStacks1--;
 				reds++;
+				repaint();
 				changeTurnPlayer();
 			}
 		}else {
@@ -625,6 +638,7 @@ static boolean draw = false;
 				stacks2[hoveredPoly]++;
 				availableStacks2--;
 				blues++;
+				repaint();
 				changeTurnPlayer();
 			}
 			
@@ -640,3 +654,4 @@ static boolean draw = false;
 	}
 }
 	
+
