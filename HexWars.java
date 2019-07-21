@@ -137,10 +137,24 @@ static int turnPlayer = 0;
 								}
 								g2.fillPolygon(xPoints, yPoints, 6);
 								g2.setColor(Color.BLACK);
-								for (int k = 0; k < maxStacks[counter]; k++) {
+								boolean red = stacks1[counter] > 0;
+								for (int k = 0; k < maxStacks[counter]; k++) { //draw Stacks on the board
 									int pad = diagonal/8;
 									int the_rest = diagonal - 2*pad;
 									int p = the_rest/maxStacks[counter];
+									if (red) {
+										if(stacks1[counter] > k) {
+											g2.setColor(Color.RED);
+											g2.fillRect(xStart + j * diagonal + pad + k*p, yStart + bit, p, 2*bit);
+											g2.setColor(Color.BLACK);
+										}
+									}else {
+										if(stacks2[counter] > k) {
+											g2.setColor(Color.BLUE);
+											g2.fillRect(xStart + j * diagonal + pad + k*p, yStart + bit, p, 2*bit);
+											g2.setColor(Color.BLACK);
+										}
+									}
 									g2.drawRect(xStart + j * diagonal + pad + k*p, yStart + bit, p, 2*bit);
 								}
 								counter++;
@@ -176,10 +190,24 @@ static int turnPlayer = 0;
 								}
 								g2.fillPolygon(xPoints, yPoints, 6);
 								g2.setColor(Color.BLACK);
+								boolean red = stacks1[counter] > 0;
 								for (int k = 0; k < maxStacks[counter]; k++) {
 									int pad = diagonal/8;
 									int the_rest = diagonal - 2*pad;
 									int p = the_rest/maxStacks[counter];
+									if (red) {
+										if(stacks1[counter] > k) {
+											g2.setColor(Color.RED);
+											g2.fillRect(xStart + j * diagonal + pad + k*p, yStart + bit, p, 2*bit);
+											g2.setColor(Color.BLACK);
+										}
+									}else {
+										if(stacks2[counter] > k) {
+											g2.setColor(Color.BLUE);
+											g2.fillRect(xStart + j * diagonal + pad + k*p, yStart + bit, p, 2*bit);
+											g2.setColor(Color.BLACK);
+										}
+									}
 									g2.drawRect(xStart + j * diagonal + pad + k*p, yStart + bit, p, 2*bit);
 								}
 								counter++;
@@ -259,9 +287,7 @@ static int turnPlayer = 0;
 			
 		}
 	}
-
-	
-	public static void main (String arg[]) throws InterruptedException {
+	public static void main (String arg[]){
 		Random r = new Random();
 		for (int i = 0; i < 69; i++) {
 			maxStacks[i] = r.nextInt(9) + 1;
@@ -270,5 +296,8 @@ static int turnPlayer = 0;
 		new HexWar();
 	}
 }
+	
+
+
 	
 
