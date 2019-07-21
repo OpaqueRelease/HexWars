@@ -27,10 +27,11 @@ static final long serialVersionUID = 12;
 static int xWindow = 1000;
 static int yWindow = 800;
 static int nFields = 4;
-static int[][] stacks1 = new int[11][11]; //Player 1 stacks
-static int[][] stacks2 = new int[11][11]; //Player 2 stacks
+static int[] stacks1 = new int[69]; //Player 1 stacks per tile
+static int[] stacks2 = new int[69]; //Player 2 stacks per tile
 static int availableStacks1 = 10; //Player 1 stacks available
 static int availableStacks2 = 10; //Player 2 stacks available
+static int[] maxStacks = new int[69]; //max stacks per tile
 static Polygon[] polygons = new Polygon[70];
 static int hoveredPoly = -1;
 static int turnPlayer = 0;
@@ -135,8 +136,14 @@ static int turnPlayer = 0;
 									g2.setColor(Color.GRAY);
 								}
 								g2.fillPolygon(xPoints, yPoints, 6);
-								counter++;
 								g2.setColor(Color.BLACK);
+								for (int k = 0; k < maxStacks[counter]; k++) {
+									int pad = diagonal/8;
+									int the_rest = diagonal - 2*pad;
+									int p = the_rest/maxStacks[counter];
+									g2.drawRect(xStart + j * diagonal + pad + k*p, yStart + bit, p, 2*bit);
+								}
+								counter++;
 								g2.drawPolygon(xPoints, yPoints, 6);
 							}
 						}else {
@@ -167,9 +174,15 @@ static int turnPlayer = 0;
 								}else {
 									g2.setColor(Color.GRAY);
 								}
-								counter++;
 								g2.fillPolygon(xPoints, yPoints, 6);
 								g2.setColor(Color.BLACK);
+								for (int k = 0; k < maxStacks[counter]; k++) {
+									int pad = diagonal/8;
+									int the_rest = diagonal - 2*pad;
+									int p = the_rest/maxStacks[counter];
+									g2.drawRect(xStart + j * diagonal + pad + k*p, yStart + bit, p, 2*bit);
+								}
+								counter++;
 								g2.drawPolygon(xPoints, yPoints, 6);
 							}	
 						}
@@ -203,19 +216,15 @@ static int turnPlayer = 0;
 	public void mouseDragged(MouseEvent e){
 		//do nothing
 	}
-	public void mousePressed(MouseEvent e) {
+	public void mousePressed(MouseEvent e){
 		//do nothing
 	}
 	public void mouseReleased(MouseEvent e){
 		if (hoveredPoly != -1) { //check if mouse is on a polygon
 			if (hoveredPoly == 69) { //skip button -> give the turn to the other player
-				if(turnPlayer == 0) {
-					turnPlayer = 1;
-				}else {
-					turnPlayer = 0;
-				}
+				changeTurnPlayer();
 			}else { //click on a tile
-				
+				infect(); //perform action and change turn player if the action is completed
 			}
 		}
 		repaint();
@@ -229,10 +238,34 @@ static int turnPlayer = 0;
 	public void mouseEntered(MouseEvent e) {
 		//do nothing
 	}
+	public void changeTurnPlayer() {
+		if(turnPlayer == 0) {
+			turnPlayer = 1;
+		}else {
+			turnPlayer = 0;
+		}
+	}
+	public void infect() {
+		if (turnPlayer == 0) {
+			if(stacks2[hoveredPoly] == 0 && stacks1[hoveredPoly] < maxStacks[hoveredPoly]) {
+				stacks1[hoveredPoly]++;
+				changeTurnPlayer();
+			}
+		}else {
+			if(stacks1[hoveredPoly] == 0 && stacks2[hoveredPoly] < maxStacks[hoveredPoly]) {
+				stacks2[hoveredPoly]++;
+				changeTurnPlayer();
+			}
+			
+		}
+	}
 
 	
 	public static void main (String arg[]) throws InterruptedException {
 		Random r = new Random();
+		for (int i = 0; i < 69; i++) {
+			maxStacks[i] = r.nextInt(9) + 1;
+		}
 		//create and run the game
 		new HexWar();
 	}
