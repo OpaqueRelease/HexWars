@@ -31,8 +31,8 @@ static int[] stacks1 = new int[69]; //Player 1 stacks per tile
 static int[] stacks2 = new int[69]; //Player 2 stacks per tile
 static int[] oldStacks1 = new int[69];
 static int[] oldStacks2 = new int[69];
-static int availableStacks1 = 5; //Player 1 stacks available
-static int availableStacks2 = 7; //Player 2 stacks available
+static int availableStacks1 = 3; //Player 1 stacks available
+static int availableStacks2 = 5; //Player 2 stacks available
 static int[] maxStacks = new int[69]; //max stacks per tile
 static Polygon[] polygons = new Polygon[70];
 static int hoveredPoly = -1;
@@ -336,15 +336,46 @@ static int nOfPlayers = 0;
 				return;
 			}
 			
-			
-			while(true) {
+			//choose a turn
+			/*while(true) { //random turn
 				int randomN = r.nextInt(69); //random hex
 				if(stacks2[randomN] == 0 && stacks1[randomN] < maxStacks[randomN]) {
 					stacks1[randomN]++;
 					availableStacks1--;
 					break;
 				}
+			} */
+			
+			int maxRating = Integer.MIN_VALUE;
+			int chosenHex = -1;
+			for(int t = 0; t<69; t++) {
+				if (stacks1[t] != maxStacks[t] && stacks2[t] == 0) {
+					int[] bstacks1 = new int[69];
+					int[] bstacks2 = new int[69];
+					for(int k = 0; k<69; k++) {
+						bstacks1[k] = stacks1[k];
+						bstacks2[k] = stacks2[k];
+					}
+					int bavailableStacks1 = availableStacks1;
+					int bavailableStacks2 = availableStacks2;
+					stacks1[t]++;
+					availableStacks1--;
+					endOfTurnInfection();
+					int p = evaluate();
+					p += maxStacks[t] - stacks1[t];
+					if(p > maxRating) {
+						maxRating = p;
+						chosenHex = t;
+					}
+					stacks1 = bstacks1;
+					stacks2 = bstacks2;
+					availableStacks1 = bavailableStacks1;
+					availableStacks2 = bavailableStacks2;
+				}
 			}
+			
+			stacks1[chosenHex]++;
+			availableStacks1--;
 			changeTurnPlayer();
 		}else { //player 2
 			if(availableStacks2 == 0) {
@@ -363,7 +394,7 @@ static int nOfPlayers = 0;
 				return;
 			}
 			
-			
+			/*   random turn
 			while(true) {
 				int randomN = r.nextInt(69); //random hex
 				if(stacks1[randomN] == 0 && stacks2[randomN] < maxStacks[randomN]) {
@@ -372,6 +403,38 @@ static int nOfPlayers = 0;
 					break;
 				}
 			}
+			*/
+			
+			int maxRating = Integer.MIN_VALUE;
+			int chosenHex = -1;
+			for(int t = 0; t<69; t++) {
+				if (stacks2[t] != maxStacks[t] && stacks1[t] == 0) {
+					int[] bstacks1 = new int[69];
+					int[] bstacks2 = new int[69];
+					for(int k = 0; k<69; k++) {
+						bstacks1[k] = stacks1[k];
+						bstacks2[k] = stacks2[k];
+					}
+					int bavailableStacks1 = availableStacks1;
+					int bavailableStacks2 = availableStacks2;
+					stacks2[t]++;
+					availableStacks2--;
+					endOfTurnInfection();
+					int p = evaluate();
+					p += maxStacks[t] - stacks2[t];
+					if(p > maxRating) {
+						maxRating = p;
+						chosenHex = t;
+					}
+					stacks1 = bstacks1;
+					stacks2 = bstacks2;
+					availableStacks1 = bavailableStacks1;
+					availableStacks2 = bavailableStacks2;
+				}
+			}
+			
+			stacks2[chosenHex]++;
+			availableStacks2--;
 			changeTurnPlayer();
 		}
 	}
@@ -708,6 +771,41 @@ static int nOfPlayers = 0;
 			}
 			
 		}
+	}
+	public int evaluate(){ //evaluates current situation for the turn player with an integer number (used for turn selection)
+		int controlled = 0;
+		int enemyControlled = 0;
+		int placed = 0;
+		int enemyPlaced = 0;
+		int available = 0;
+		int enemyAvailable = 0;
+		
+		if (turnPlayer == 0) {
+			available = availableStacks1;
+			enemyAvailable = availableStacks2;
+			for(int i = 0; i<69; i++){
+				placed += stacks1[i];
+				enemyPlaced += stacks2[i];
+				if(stacks1[i] == maxStacks[i]){
+					controlled++;
+				}else if(stacks2[i] == maxStacks[i]) {
+					enemyControlled++;
+				}
+			}
+		}else {
+			available = availableStacks2;
+			enemyAvailable = availableStacks1;
+			for(int i = 0; i<69; i++){
+				placed += stacks2[i];
+				enemyPlaced += stacks1[i];
+				if(stacks2[i] == maxStacks[i]){
+					controlled++;
+				}else if(stacks1[i] == maxStacks[i]) {
+					enemyControlled++;
+				}
+			}
+		}
+		return (controlled - enemyControlled)*1000 + (placed - enemyPlaced)*100 + (available - enemyAvailable)*10;
 	}
 	public static void main (String arg[]){
 		Scanner sc = new Scanner(System.in);
