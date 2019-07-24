@@ -42,6 +42,7 @@ static int blues = 0;
 static boolean redWin = false;
 static boolean blueWin = false;
 static boolean draw = false;
+static int nOfPlayers = 0;
 
 	public HexWar(){
 		//create a window
@@ -293,17 +294,22 @@ static boolean draw = false;
 		//do nothing
 	}
 	public void mouseReleased(MouseEvent e){
-		if (hoveredPoly != -1) { //check if mouse is on a polygon
-			if (hoveredPoly == 69) { //skip button -> give the turn to the other player
-				changeTurnPlayer();
-			}else { //click on a tile
-				infect(); //perform action and change turn player if the action is completed
+		if (nOfPlayers == 2 || nOfPlayers == 1 && turnPlayer == 1) { //Human player has the turn
+			if (hoveredPoly != -1) { //check if mouse is on a polygon
+				if (hoveredPoly == 69) { //skip button -> give the turn to the other player
+					changeTurnPlayer();
+				}else { //click on a tile
+					infect(); //perform action and change turn player if the action is completed
+				}
 			}
+			repaint();
 		}
-		repaint();
 	}
 	public void mouseClicked(MouseEvent e) {
-		//do nothing
+		//machine player makes a turn
+		if (nOfPlayers == 0 || nOfPlayers == 1 && turnPlayer == 0) {
+			machineTurn();
+		}
 	}
 	public void mouseExited(MouseEvent e) {
 		//do nothing
@@ -311,277 +317,336 @@ static boolean draw = false;
 	public void mouseEntered(MouseEvent e) {
 		//do nothing
 	}
+	public void machineTurn(){ //makes a turn for a machine player
+		Random r = new Random();
+		if(turnPlayer == 0) { //player 1
+			if(availableStacks1 == 0) {
+				changeTurnPlayer();
+				return;
+			}
+			boolean s = true;	
+			for(int i = 0; i < 69; i++) { // all tiles are full or occupied by opponent
+				if (stacks1[i] != maxStacks[i] && stacks2[i] == 0) {
+					s = false;
+					break;
+				}
+			}
+			if(s) {
+				changeTurnPlayer();
+				return;
+			}
+			
+			
+			while(true) {
+				int randomN = r.nextInt(69); //random hex
+				if(stacks2[randomN] == 0 && stacks1[randomN] < maxStacks[randomN]) {
+					stacks1[randomN]++;
+					availableStacks1--;
+					break;
+				}
+			}
+			changeTurnPlayer();
+		}else { //player 2
+			if(availableStacks2 == 0) {
+				changeTurnPlayer();
+				return;
+			}
+			boolean s = true;	
+			for(int i = 0; i < 69; i++) { // all tiles are full or occupied by opponent
+				if (stacks2[i] != maxStacks[i] && stacks1[i] == 0) {
+					s = false;
+					break;
+				}
+			}
+			if(s) {
+				changeTurnPlayer();
+				return;
+			}
+			
+			
+			while(true) {
+				int randomN = r.nextInt(69); //random hex
+				if(stacks1[randomN] == 0 && stacks2[randomN] < maxStacks[randomN]) {
+					stacks2[randomN]++;
+					availableStacks2--;
+					break;
+				}
+			}
+			changeTurnPlayer();
+		}
+	}
 	public void changeTurnPlayer() { // performs end of turn and gives the turn to the other player
 		if(turnPlayer == 0) {
 			turnPlayer = 1;
 		}else {
 			turnPlayer = 0;
 		}
-		//end of turn infections
-		int[] infectionBlue = new int[69];
-		int[] infectionRed = new int[69];
-		int counter = 0;
-		for (int i = 0; i < 11; i++) { //check all hexes
-			if (i < 5) {
-				for (int j = 0; j < i + 4; j++) { // neighbors are -1, +1, -(i+3), -(i+4), +i+4 and +i+5
-					int blue = 0;
-					int red = 0;
-					//count this tile
-					if (stacks1[counter] == maxStacks[counter]) {
-						red+=stacks1[counter];
-					}
-					if (stacks2[counter] == maxStacks[counter]) {
-						blue+=stacks2[counter];
-					}
-					//count neighbor tiles
-					if (j != 0) { //left neighbor and upper left
-						if (maxStacks[counter - 1] == stacks2[counter - 1]) {
-							blue+=stacks2[counter - 1];
-						}
-						if(maxStacks[counter - 1] == stacks1[counter - 1]) {
-							red+=stacks1[counter - 1];
-						}
-						if(i != 0) {
-							if (maxStacks[counter - (i + 4)] == stacks2[counter - (i + 4)]) {
-								blue+=stacks2[counter - (i + 4)];
-							}
-							if(maxStacks[counter - (i + 4)] == stacks1[counter - (i + 4)]) {
-								red+=stacks1[counter - (i + 4)];
-							}
-						}
-					}
-					if (j < i + 3) { //right neighbor and upper right
-						if (maxStacks[counter + 1] == stacks2[counter + 1]) {
-							blue+=stacks2[counter + 1];
-						}
-						if(maxStacks[counter + 1] == stacks1[counter + 1]) {
-							red+=stacks1[counter + 1];
-						}
-						if (i != 0) {
-							if (maxStacks[counter - (i + 3)] == stacks2[counter - (i + 3)]) {
-								blue+=stacks2[counter - (i + 3)];
-							}
-							if(maxStacks[counter - (i + 3)] == stacks1[counter - (i + 3)]) {
-								red+=stacks1[counter - (i + 3)];
-							}
-						}
-					}
-					
-					 //bottom left and right
-					if (maxStacks[counter + (i + 4)] == stacks2[counter + (i + 4)]) {
-						blue+=stacks2[counter + (i + 4)];
-					}
-					if(maxStacks[counter + (i + 4)] == stacks1[counter + (i + 4)]) {
-						red+=stacks1[counter + (i + 4)];
-					}
-					if (maxStacks[counter + (i + 5)] == stacks2[counter + (i + 5)]) {
-						blue+=stacks2[counter + (i + 5)];
-					}
-					if(maxStacks[counter + (i + 5)] == stacks1[counter + (i + 5)]) {
-						red+=stacks1[counter + (i + 5)];
-					}
-					
-					// check results of red and blue pressure on the tile
-					if(red > blue) {
-						if(stacks2[counter] > 0) {
-							infectionBlue[counter]--;
-							blues--;
-							availableStacks1++;
-						}else if (stacks1[counter] != maxStacks[counter]){
-							infectionRed[counter]++;
-							reds++;
-						}
-					}else if (blue > red){
-						if(stacks1[counter] > 0) {
-							infectionRed[counter]--;
-							availableStacks2++;
-							reds--;
-						}else if (stacks2[counter] != maxStacks[counter]){
-							infectionBlue[counter]++;
-							blues++;
-						}
-					}
-					counter++;
-				}
-			}else if(i == 5) { //neighbors are -1, +1, +(14 - i), +(13 - i), -(i+3), -(i+4)
-					for (int j = 0; j<9; j++) {
-						int blue = 0;
-						int red = 0;
-						//count this tile
-						if (stacks1[counter] == maxStacks[counter]) {
-							red+=stacks1[counter];
-						}
-						if (stacks2[counter] == maxStacks[counter]) {
-							blue+=stacks2[counter];
-						}
-						//count neighbor tiles
-						if (j != 0) { //left neighbor and upper left
-							if (maxStacks[counter - 1] == stacks2[counter - 1]) {
-								blue+=stacks2[counter - 1];
-							}
-							if(maxStacks[counter - 1] == stacks1[counter - 1]) {
-								red+=stacks1[counter - 1];
-							}
-							
-							if (maxStacks[counter - (i + 4)] == stacks2[counter - (i + 4)]) {
-								blue+=stacks2[counter - (i + 4)];
-							}
-							if(maxStacks[counter - (i + 4)] == stacks1[counter - (i + 4)]) {
-								red+=stacks1[counter - (i + 4)];
-							}
-							
-						}
-						if (j < i + 3) { //right neighbor and upper right
-							if (maxStacks[counter + 1] == stacks2[counter + 1]) {
-								blue+=stacks2[counter + 1];
-							}
-							if(maxStacks[counter + 1] == stacks1[counter + 1]) {
-								red+=stacks1[counter + 1];
-							}
-							if (maxStacks[counter - (i + 3)] == stacks2[counter - (i + 3)]) {
-								blue+=stacks2[counter - (i + 3)];
-							}
-							if(maxStacks[counter - (i + 3)] == stacks1[counter - (i + 3)]) {
-								red+=stacks1[counter - (i + 3)];
-							}
-							
-						}
-						
-						 //bottom left and right
-						if (maxStacks[counter + 13 - i] == stacks2[counter + 13 - i]) {
-							blue+=stacks2[counter + 13 - i];
-						}
-						if(maxStacks[counter + 13 - i] == stacks1[counter + 13 - i]) {
-							red+=stacks1[counter + 13 - i];
-						}
-						if (maxStacks[counter + 14 - i] == stacks2[counter + 14 - i]) {
-							blue+=stacks2[counter + 14 - i];
-						}
-						if(maxStacks[counter + 14 - i] == stacks1[counter + 14 - i]) {
-							red+=stacks1[counter + 14 - i];
-						}
-						
-						// check results of red and blue pressure on the tile
-						if(red > blue) {
-							if(stacks2[counter] > 0) {
-								infectionBlue[counter]--;
-								availableStacks1++;
-								blues--;
-							}else if (stacks1[counter] != maxStacks[counter]){
-								infectionRed[counter]++;
-								reds++;
-							}
-						}else if (blue > red){
-							if(stacks1[counter] > 0) {
-								infectionRed[counter]--;
-								availableStacks2++;
-								reds--;
-							}else if (stacks2[counter] != maxStacks[counter]){
-								infectionBlue[counter]++;
-								blues++;
-							}
-						}
-						counter++;
-					}
-				
-			}else {
-				
-				for (int j = 0; j < 14 - i; j++) { //neighbors are -1, +1, +(14 - i), +(13 - i), -(6 - i) and -(5 - i)
-					
-					int blue = 0;
-					int red = 0;
-					//count this tile
-					if (stacks1[counter] == maxStacks[counter]) {
-						red+=stacks1[counter];
-					}
-					if (stacks2[counter] == maxStacks[counter]) {
-						blue+=stacks2[counter];
-					}
-					//count neighbor tiles
-					if (j != 0) { //left neighbor and bottom left
-						if (maxStacks[counter - 1] == stacks2[counter - 1]) {
-							blue+=stacks2[counter - 1];
-						}
-						if(maxStacks[counter - 1] == stacks1[counter - 1]) {
-							red+=stacks1[counter - 1];
-						}
-						if(i < 10) {
-							if (maxStacks[counter + 13 - i] == stacks2[counter + 13 - i]) {
-								blue+=stacks2[counter + 13 - i];
-							}
-							if(maxStacks[counter + 13 - i] == stacks1[counter + 13 - i]) {
-								red+=stacks1[counter + 13 - i];
-							}
-						}
-						
-					}
-					if (j < 13 - i) { //right neighbor and bottom right
-						if (maxStacks[counter + 1] == stacks2[counter + 1]) {
-							blue+=stacks2[counter + 1];
-						}
-						if(maxStacks[counter + 1] == stacks1[counter + 1]) {
-							red+=stacks1[counter + 1];
-						}
-						if (i < 10) {
-							if (maxStacks[counter + 14 - i] == stacks2[counter + 14 - i]) {
-								blue+=stacks2[counter + 14 - i];
-							}
-							if(maxStacks[counter + 14 - i] == stacks1[counter + 14 - i]) {
-								red+=stacks1[counter + 14 - i];
-							}
-						}
-					}
-					
-					 //upper left and right
-						if (maxStacks[counter -(14 - i)] == stacks2[counter -(14 - i)]) {
-							blue+=stacks2[counter -(14 - i)];
-						}
-						if(maxStacks[counter -(14 - i)] == stacks1[counter -(14 - i)]) {
-							red+=stacks1[counter -(14 - i)];
-						}
-						if (maxStacks[counter -(15 - i)] == stacks2[counter -(15 - i)]) {
-							blue+=stacks2[counter -(15 - i)];
-						}
-						if(maxStacks[counter -(15 - i)] == stacks1[counter -(15 - i)]) {
-							red+=stacks1[counter -(15 - i)];
-						}
-					
-					
-					// check results of red and blue pressure on the tile
-					if(red > blue) {
-						if(stacks2[counter] > 0) {
-							infectionBlue[counter]--;
-							availableStacks1++;
-							blues--;
-						}else if (stacks1[counter] != maxStacks[counter]){
-							infectionRed[counter]++;
-							reds++;
-						}
-					}else if (blue > red){
-						if(stacks1[counter] > 0) {
-							infectionRed[counter]--;
-							availableStacks2++;
-							reds--;
-						}else if (stacks2[counter] != maxStacks[counter]){
-							infectionBlue[counter]++;
-							blues++;
-						}
-					}
-					
-					counter++;
-				}	
-			}
-		} //for		
-		//update stacks
-		oldStacks1 = stacks1;
-		oldStacks2 = stacks2;
-		for(int t = 0; t<69; t++) {
-			stacks1[t] += infectionRed[t];
-			stacks2[t] += infectionBlue[t];
-		}
-		 
+		endOfTurnInfection();
 		endGame();
 		repaint();
+	}
+	public void endOfTurnInfection() {
+				int[] infectionBlue = new int[69];
+				int[] infectionRed = new int[69];
+				int counter = 0;
+				for (int i = 0; i < 11; i++) { //check all hexes
+					if (i < 5) {
+						for (int j = 0; j < i + 4; j++) { // neighbors are -1, +1, -(i+3), -(i+4), +i+4 and +i+5
+							int blue = 0;
+							int red = 0;
+							//count this tile
+							if (stacks1[counter] == maxStacks[counter]) {
+								red+=stacks1[counter];
+							}
+							if (stacks2[counter] == maxStacks[counter]) {
+								blue+=stacks2[counter];
+							}
+							//count neighbor tiles
+							if (j != 0) { //left neighbor and upper left
+								if (maxStacks[counter - 1] == stacks2[counter - 1]) {
+									blue+=stacks2[counter - 1];
+								}
+								if(maxStacks[counter - 1] == stacks1[counter - 1]) {
+									red+=stacks1[counter - 1];
+								}
+								if(i != 0) {
+									if (maxStacks[counter - (i + 4)] == stacks2[counter - (i + 4)]) {
+										blue+=stacks2[counter - (i + 4)];
+									}
+									if(maxStacks[counter - (i + 4)] == stacks1[counter - (i + 4)]) {
+										red+=stacks1[counter - (i + 4)];
+									}
+								}
+							}
+							if (j < i + 3) { //right neighbor and upper right
+								if (maxStacks[counter + 1] == stacks2[counter + 1]) {
+									blue+=stacks2[counter + 1];
+								}
+								if(maxStacks[counter + 1] == stacks1[counter + 1]) {
+									red+=stacks1[counter + 1];
+								}
+								if (i != 0) {
+									if (maxStacks[counter - (i + 3)] == stacks2[counter - (i + 3)]) {
+										blue+=stacks2[counter - (i + 3)];
+									}
+									if(maxStacks[counter - (i + 3)] == stacks1[counter - (i + 3)]) {
+										red+=stacks1[counter - (i + 3)];
+									}
+								}
+							}
+							
+							 //bottom left and right
+							if (maxStacks[counter + (i + 4)] == stacks2[counter + (i + 4)]) {
+								blue+=stacks2[counter + (i + 4)];
+							}
+							if(maxStacks[counter + (i + 4)] == stacks1[counter + (i + 4)]) {
+								red+=stacks1[counter + (i + 4)];
+							}
+							if (maxStacks[counter + (i + 5)] == stacks2[counter + (i + 5)]) {
+								blue+=stacks2[counter + (i + 5)];
+							}
+							if(maxStacks[counter + (i + 5)] == stacks1[counter + (i + 5)]) {
+								red+=stacks1[counter + (i + 5)];
+							}
+							
+							// check results of red and blue pressure on the tile
+							if(red > blue) {
+								if(stacks2[counter] > 0) {
+									infectionBlue[counter]--;
+									blues--;
+									availableStacks1++;
+								}else if (stacks1[counter] != maxStacks[counter]){
+									infectionRed[counter]++;
+									reds++;
+								}
+							}else if (blue > red){
+								if(stacks1[counter] > 0) {
+									infectionRed[counter]--;
+									availableStacks2++;
+									reds--;
+								}else if (stacks2[counter] != maxStacks[counter]){
+									infectionBlue[counter]++;
+									blues++;
+								}
+							}
+							counter++;
+						}
+					}else if(i == 5) { //neighbors are -1, +1, +(14 - i), +(13 - i), -(i+3), -(i+4)
+							for (int j = 0; j<9; j++) {
+								int blue = 0;
+								int red = 0;
+								//count this tile
+								if (stacks1[counter] == maxStacks[counter]) {
+									red+=stacks1[counter];
+								}
+								if (stacks2[counter] == maxStacks[counter]) {
+									blue+=stacks2[counter];
+								}
+								//count neighbor tiles
+								if (j != 0) { //left neighbor and upper left
+									if (maxStacks[counter - 1] == stacks2[counter - 1]) {
+										blue+=stacks2[counter - 1];
+									}
+									if(maxStacks[counter - 1] == stacks1[counter - 1]) {
+										red+=stacks1[counter - 1];
+									}
+									
+									if (maxStacks[counter - (i + 4)] == stacks2[counter - (i + 4)]) {
+										blue+=stacks2[counter - (i + 4)];
+									}
+									if(maxStacks[counter - (i + 4)] == stacks1[counter - (i + 4)]) {
+										red+=stacks1[counter - (i + 4)];
+									}
+									
+								}
+								if (j < i + 3) { //right neighbor and upper right
+									if (maxStacks[counter + 1] == stacks2[counter + 1]) {
+										blue+=stacks2[counter + 1];
+									}
+									if(maxStacks[counter + 1] == stacks1[counter + 1]) {
+										red+=stacks1[counter + 1];
+									}
+									if (maxStacks[counter - (i + 3)] == stacks2[counter - (i + 3)]) {
+										blue+=stacks2[counter - (i + 3)];
+									}
+									if(maxStacks[counter - (i + 3)] == stacks1[counter - (i + 3)]) {
+										red+=stacks1[counter - (i + 3)];
+									}
+									
+								}
+								
+								 //bottom left and right
+								if (maxStacks[counter + 13 - i] == stacks2[counter + 13 - i]) {
+									blue+=stacks2[counter + 13 - i];
+								}
+								if(maxStacks[counter + 13 - i] == stacks1[counter + 13 - i]) {
+									red+=stacks1[counter + 13 - i];
+								}
+								if (maxStacks[counter + 14 - i] == stacks2[counter + 14 - i]) {
+									blue+=stacks2[counter + 14 - i];
+								}
+								if(maxStacks[counter + 14 - i] == stacks1[counter + 14 - i]) {
+									red+=stacks1[counter + 14 - i];
+								}
+								
+								// check results of red and blue pressure on the tile
+								if(red > blue) {
+									if(stacks2[counter] > 0) {
+										infectionBlue[counter]--;
+										availableStacks1++;
+										blues--;
+									}else if (stacks1[counter] != maxStacks[counter]){
+										infectionRed[counter]++;
+										reds++;
+									}
+								}else if (blue > red){
+									if(stacks1[counter] > 0) {
+										infectionRed[counter]--;
+										availableStacks2++;
+										reds--;
+									}else if (stacks2[counter] != maxStacks[counter]){
+										infectionBlue[counter]++;
+										blues++;
+									}
+								}
+								counter++;
+							}
+						
+					}else {
+						
+						for (int j = 0; j < 14 - i; j++) { //neighbors are -1, +1, +(14 - i), +(13 - i), -(6 - i) and -(5 - i)
+							
+							int blue = 0;
+							int red = 0;
+							//count this tile
+							if (stacks1[counter] == maxStacks[counter]) {
+								red+=stacks1[counter];
+							}
+							if (stacks2[counter] == maxStacks[counter]) {
+								blue+=stacks2[counter];
+							}
+							//count neighbor tiles
+							if (j != 0) { //left neighbor and bottom left
+								if (maxStacks[counter - 1] == stacks2[counter - 1]) {
+									blue+=stacks2[counter - 1];
+								}
+								if(maxStacks[counter - 1] == stacks1[counter - 1]) {
+									red+=stacks1[counter - 1];
+								}
+								if(i < 10) {
+									if (maxStacks[counter + 13 - i] == stacks2[counter + 13 - i]) {
+										blue+=stacks2[counter + 13 - i];
+									}
+									if(maxStacks[counter + 13 - i] == stacks1[counter + 13 - i]) {
+										red+=stacks1[counter + 13 - i];
+									}
+								}
+								
+							}
+							if (j < 13 - i) { //right neighbor and bottom right
+								if (maxStacks[counter + 1] == stacks2[counter + 1]) {
+									blue+=stacks2[counter + 1];
+								}
+								if(maxStacks[counter + 1] == stacks1[counter + 1]) {
+									red+=stacks1[counter + 1];
+								}
+								if (i < 10) {
+									if (maxStacks[counter + 14 - i] == stacks2[counter + 14 - i]) {
+										blue+=stacks2[counter + 14 - i];
+									}
+									if(maxStacks[counter + 14 - i] == stacks1[counter + 14 - i]) {
+										red+=stacks1[counter + 14 - i];
+									}
+								}
+							}
+							
+							 //upper left and right
+								if (maxStacks[counter -(14 - i)] == stacks2[counter -(14 - i)]) {
+									blue+=stacks2[counter -(14 - i)];
+								}
+								if(maxStacks[counter -(14 - i)] == stacks1[counter -(14 - i)]) {
+									red+=stacks1[counter -(14 - i)];
+								}
+								if (maxStacks[counter -(15 - i)] == stacks2[counter -(15 - i)]) {
+									blue+=stacks2[counter -(15 - i)];
+								}
+								if(maxStacks[counter -(15 - i)] == stacks1[counter -(15 - i)]) {
+									red+=stacks1[counter -(15 - i)];
+								}
+							
+							
+							// check results of red and blue pressure on the tile
+							if(red > blue) {
+								if(stacks2[counter] > 0) {
+									infectionBlue[counter]--;
+									availableStacks1++;
+									blues--;
+								}else if (stacks1[counter] != maxStacks[counter]){
+									infectionRed[counter]++;
+									reds++;
+								}
+							}else if (blue > red){
+								if(stacks1[counter] > 0) {
+									infectionRed[counter]--;
+									availableStacks2++;
+									reds--;
+								}else if (stacks2[counter] != maxStacks[counter]){
+									infectionBlue[counter]++;
+									blues++;
+								}
+							}
+							
+							counter++;
+						}	
+					}
+				} //for		
+				//update stacks
+				oldStacks1 = stacks1;
+				oldStacks2 = stacks2;
+				for(int t = 0; t<69; t++) {
+					stacks1[t] += infectionRed[t];
+					stacks2[t] += infectionBlue[t];
+				}
 	}
 	public void endGame() { //checks if the game is over
 		if(reds == 0 && availableStacks1 == 0) {
@@ -645,9 +710,18 @@ static boolean draw = false;
 		}
 	}
 	public static void main (String arg[]){
+		Scanner sc = new Scanner(System.in);
 		Random r = new Random();
 		for (int i = 0; i < 69; i++) {
 			maxStacks[i] = r.nextInt(9) + 1;
+		}
+		while(true) {
+			System.out.println("Enter the number of human players (0 - 2):");
+			nOfPlayers = sc.nextInt();
+			if(nOfPlayers <= 2 && nOfPlayers >= 0) {
+				break;
+			}
+			System.out.println("This game can be played by a player against a machine, by 2 players against each other, or by 2 machines playing against each other!");
 		}
 		//create and run the game
 		new HexWar();
